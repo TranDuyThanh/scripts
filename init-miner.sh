@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+if [ -z "$1" ]; then
+    echo "mising coin param: zec or lux"
+fi
+
 # Install docker
 sudo apt-get update -y && apt-get dist-upgrade -y
 
@@ -36,16 +41,38 @@ sudo add-apt-repository ppa:graphics-drivers/ppa
 sudo apt-get update -y
 sudo apt-get install -y nvidia-387 supervisor
 
-sudo cp miner /usr/local/bin
-sudo cp miner_log.conf /etc/supervisor/conf.d/
-sudo cp zcash_miner.conf /etc/supervisor/conf.d/
+if [ "$1" == "zec" ]; then
+    sudo cp miner /usr/local/bin
+
+    sudo mv /etc/supervisor/conf.d /etc/supervisor/conf.d.bk
+    sudo mkdir /etc/supervisor/conf.d
+
+    sudo cp miner_log.conf /etc/supervisor/conf.d/
+    sudo cp zcash_miner.conf /etc/supervisor/conf.d/
+fi
+
+
+# Init Lux miner
+if [ "$1" == "lux" ]; then
+    wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_9.1.85-1_amd64.deb
+    sudo dpkg -i cuda-repo-ubuntu1604_9.1.85-1_amd64.deb
+    sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+    sudo apt-get update
+    sudo apt-get install cuda
+    sudo cp ccminer /usr/local/bin
+
+    sudo mv /etc/supervisor/conf.d /etc/supervisor/conf.d.bk
+    sudo mkdir /etc/supervisor/conf.d
+
+    sudo cp miner_log.conf /etc/supervisor/conf.d/
+    sudo cp miner_lux.conf /etc/supervisor/conf.d/
+fi
 
 sudo systemctl enable supervisor
 sudo systemctl restart supervisor
 
 sudo systemctl enable multi-user.target --force
 sudo systemctl set-default multi-user.target
-
 
 # sudo nano /etc/default/grub
 # Find this line:
